@@ -17,7 +17,7 @@ st.set_page_config(
 )
 
 # 设置 Tushare Token
-ts.set_token(os.getenv('TUSHARE_TOKEN', '1cb32b374862a96d3e0208d1d6700629b68873fd64faa8a4af3b8c20'))
+ts.set_token(os.getenv('TUSHARE_TOKEN'))
 pro = ts.pro_api()
 
 # 页面标题
