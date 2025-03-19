@@ -65,7 +65,7 @@ def get_stock_data(ts_code, start_date, end_date):
         stock_name = basic_info.iloc[0]['name'] if not basic_info.empty else ''
         
         # 按日期降序排序
-        df = df.sort_values('trade_date', ascending=False)
+        df = df.sort_values('trade_date', ascending=True)
         
         # 计算技术指标
         # 移动平均线
@@ -83,6 +83,8 @@ def get_stock_data(ts_code, start_date, end_date):
         
         # 添加股票名称
         df['stock_name'] = stock_name
+
+        df = df.sort_values('trade_date', ascending=False)
         
         return df
     except Exception as e:
