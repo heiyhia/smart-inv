@@ -38,7 +38,7 @@ COLUMN_NAMES = {
     'low': '最低价',
     'price_range': '最高最低差价',
     'amplitude': 'T涨幅差',
-    'pct_chg': '涨跌幅',
+    'pct_chg': '涨跌幅%',
     'ma3': 'M3',
     'ma5': 'M5',
     'ma10': 'M10',
@@ -81,6 +81,9 @@ def get_stock_data(ts_code, start_date, end_date):
         # 计算T幅度差 (收盘价 - 开盘价)
         df['amplitude'] = (df['close'] - df['open']).round(2)
         
+        # 涨跌幅保留2位小数
+        df['pct_chg'] = df['pct_chg'].round(2)
+        
         # 添加股票名称
         df['stock_name'] = stock_name
 
@@ -119,7 +122,7 @@ with st.sidebar:
     st.header("显示设置")
     all_columns = list(COLUMN_NAMES.values())
     default_columns = ['股票代码', '股票名称', '日期', '开盘价', '收盘价', '最高价', '最低价', 
-                      'T涨幅差', '涨跌幅', 'M3', 'M5', 'M10', 'M20', 
+                      'T涨幅差', '涨跌幅%', 'M3', 'M5', 'M10', 'M20', 
                       '最高最低差价']
     selected_columns = st.multiselect(
         "选择要显示的列",
