@@ -27,25 +27,54 @@
 ## 部署说明
 
 1. 克隆本仓库
-2. 安装 Wrangler CLI:
+
+2. 部署 Cloudflare Worker:
    ```bash
+   cd worker
    npm install -g @cloudflare/wrangler
-   ```
-3. 登录到 Cloudflare:
-   ```bash
    wrangler login
    ```
-4. 修改 wrangler.toml:
+
+3. 修改 worker/wrangler.toml:
    - 填写你的 Cloudflare account_id
    - 确认 TUSHARE_TOKEN 设置正确
-5. 部署 Worker:
+
+4. 部署 Worker:
    ```bash
-   wrangler publish
+   wrangler deploy
    ```
-6. 修改 config.js 中的 API_URL 为你的 Worker URL
-7. 部署前端文件到你的网站服务器或 Cloudflare Pages
+   部署成功后，你会获得一个 Worker URL，类似：
+   https://stock-data-api.xxx.workers.dev
+
+5. 修改前端配置:
+   - 打开 frontend/config.js
+   - 将 API_URL 更新为你的 Worker URL
+
+6. 部署前端文件:
+   可以选择以下任一方式：
+   - 部署到 Cloudflare Pages
+   - 部署到任何静态网站托管服务
+   - 直接在本地打开 index.html 文件
+
+## 本地开发
+
+1. 启动 Worker 开发服务器:
+   ```bash
+   cd worker
+   wrangler dev
+   ```
+   这会启动一个本地开发服务器，并提供一个本地测试 URL
+
+2. 更新前端配置:
+   - 临时修改 frontend/config.js 中的 API_URL 为本地 Worker URL
+   - 直接打开 frontend/index.html 进行测试
 
 ## 注意事项
+
+- 确保 worker.js 和 wrangler.toml 在同一目录下
+- 部署前确认 wrangler.toml 中的配置正确
+- 本地开发时使用 `wrangler dev` 进行测试
+- 生产环境部署使用 `wrangler deploy`
 
 - 确保 Cloudflare Worker 的 URL 在 config.js 中配置正确
 - Tushare API Token 已通过 Cloudflare Worker 环境变量安全存储

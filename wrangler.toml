@@ -1,4 +1,6 @@
 name = "stock-data-api"
+main = "worker.js"
+compatibility_date = "2025-01-01"
 type = "javascript"
 account_id = "" # 需要填写你的 Cloudflare 账号 ID
 workers_dev = true
