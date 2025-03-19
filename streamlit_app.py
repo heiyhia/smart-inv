@@ -121,8 +121,8 @@ with st.sidebar:
     # 选择显示的列
     st.header("显示设置")
     all_columns = list(COLUMN_NAMES.values())
-    default_columns = ['股票代码', '股票名称', '日期', '开盘价', '收盘价', '最高价', '最低价', 
-                      'T涨幅差', '涨跌幅%', 'M3', 'M5', 'M10', 'M20', 
+    default_columns = ['股票代码', '股票名称', '日期', '最高价', '最低价', '开盘价', '收盘价', 
+                      'T涨幅差', '涨跌幅%', 'M3', 'M5', 'M10', 'M20', 'M50', 'M120',
                       '最高最低差价']
     selected_columns = st.multiselect(
         "选择要显示的列",
