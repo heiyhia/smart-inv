@@ -37,6 +37,8 @@ COLUMN_NAMES = {
     'high': '最高价',
     'low': '最低价',
     'price_range': '最高最低差价',
+    'amplitude': 'T涨幅差',
+    'pct_chg': '涨跌幅',
     'ma3': 'M3',
     'ma5': 'M5',
     'ma10': 'M10',
@@ -45,8 +47,7 @@ COLUMN_NAMES = {
     'ma120': 'M120',
     'vol': '成交量',
     'vol_ratio': '量比',
-    'turnover_rate': '换手率',
-    'pct_chg': '涨跌幅'
+    'turnover_rate': '换手率'
 }
 
 @st.cache_data
@@ -63,8 +64,8 @@ def get_stock_data(ts_code, start_date, end_date):
         basic_info = stocks[stocks['ts_code'] == ts_code]
         stock_name = basic_info.iloc[0]['name'] if not basic_info.empty else ''
         
-        # 按日期排序
-        df = df.sort_values('trade_date')
+        # 按日期降序排序
+        df = df.sort_values('trade_date', ascending=False)
         
         # 计算技术指标
         # 移动平均线
@@ -76,6 +77,9 @@ def get_stock_data(ts_code, start_date, end_date):
         
         # 计算量比（当日成交量/过去5日平均成交量）
         df['vol_ratio'] = (df['vol'] / df['vol'].rolling(window=5).mean()).round(2)
+        
+        # 计算T幅度差 (收盘价 - 开盘价)
+        df['amplitude'] = (df['close'] - df['open']).round(2)
         
         # 添加股票名称
         df['stock_name'] = stock_name
@@ -92,8 +96,8 @@ with st.sidebar:
     # 股票代码输入
     stock_code = st.text_input(
         "股票代码",
-        value="000001.SZ",
-        help="例如：000001.SZ（平安银行）"
+        value="000839.SZ",
+        help="000839.SZ（中信国安）"
     )
     
     # 日期选择
@@ -112,7 +116,9 @@ with st.sidebar:
     # 选择显示的列
     st.header("显示设置")
     all_columns = list(COLUMN_NAMES.values())
-    default_columns = ['股票代码', '股票名称', '日期', '开盘价', '收盘价', '最高价', '最低价', '涨跌幅']
+    default_columns = ['股票代码', '股票名称', '日期', '开盘价', '收盘价', '最高价', '最低价', 
+                      'T涨幅差', '涨跌幅', 'M3', 'M5', 'M10', 'M20', 
+                      '最高最低差价']
     selected_columns = st.multiselect(
         "选择要显示的列",
         options=all_columns,
