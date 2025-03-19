@@ -43,6 +43,7 @@ COLUMN_NAMES = {
     'ma5': 'M5',
     'ma10': 'M10',
     'ma20': 'M20',
+    'ma30': 'M30',
     'ma50': 'M50',
     'ma120': 'M120',
     'vol': '成交量',
@@ -69,7 +70,7 @@ def get_stock_data(ts_code, start_date, end_date):
         
         # 计算技术指标
         # 移动平均线
-        for ma in [3, 5, 10, 20, 50, 120]:
+        for ma in [3, 5, 10, 20, 30, 50, 120]:
             df[f'ma{ma}'] = df['close'].rolling(window=ma).mean().round(2)
             
         # 最高最低差价
@@ -122,7 +123,7 @@ with st.sidebar:
     st.header("显示设置")
     all_columns = list(COLUMN_NAMES.values())
     default_columns = ['股票代码', '股票名称', '日期', '最高价', '最低价', '开盘价', '收盘价', 
-                      'T涨幅差', '涨跌幅%', 'M3', 'M5', 'M10', 'M20', 'M50', 'M120',
+                      'T涨幅差', '涨跌幅%', 'M3', 'M5', 'M10', 'M20', 'M30', 'M50', 'M120',
                       '最高最低差价']
     selected_columns = st.multiselect(
         "选择要显示的列",
