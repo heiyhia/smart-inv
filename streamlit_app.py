@@ -25,6 +25,8 @@ st.write(
     """
 )
 
+stocks = pd.read_csv("data/stock_list.csv")
+
 # 定义列名映射
 COLUMN_NAMES = {
     'ts_code': '股票代码',
@@ -58,7 +60,7 @@ def get_stock_data(ts_code, start_date, end_date):
             return None
             
         # 获取基本信息
-        basic_info = pro.stock_basic(ts_code=ts_code, fields='name')
+        basic_info = stocks[stocks['ts_code'] == ts_code]
         stock_name = basic_info.iloc[0]['name'] if not basic_info.empty else ''
         
         # 按日期排序
