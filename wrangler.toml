@@ -1,0 +1,12 @@
+name = "stock-data-api"
+type = "javascript"
+account_id = "" # 需要填写你的 Cloudflare 账号 ID
+workers_dev = true
+
+[vars]
+TUSHARE_TOKEN = "1cb32b374862a96d3e0208d1d6700629b68873fd64faa8a4af3b8c20"
+
+[build]
+command = ""
+[build.upload]
+format = "service-worker" 
