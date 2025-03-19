@@ -4,10 +4,6 @@ import pandas as pd
 import numpy as np
 import tushare as ts
 from datetime import datetime, timedelta
-from dotenv import load_dotenv
-
-# 加载环境变量
-load_dotenv()
 
 # 设置页面配置
 st.set_page_config(
@@ -17,7 +13,8 @@ st.set_page_config(
 )
 
 # 设置 Tushare Token
-ts.set_token(os.getenv('TUSHARE_TOKEN'))
+token = st.secrets["TUSHARE_TOKEN"]
+ts.set_token(token)
 pro = ts.pro_api()
 
 # 页面标题
