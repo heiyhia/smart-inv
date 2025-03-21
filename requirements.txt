@@ -3,3 +3,12 @@ pandas
 tushare
 numpy
 altair
+sqlalchemy
+psycopg2-binary
+redis
+python-jose[cryptography]
+passlib[bcrypt]
+python-dotenv
+alembic
+python-multipart
+bcrypt==4.0.1
