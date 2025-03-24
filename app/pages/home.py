@@ -13,9 +13,8 @@ def home_page():
     # 确保 token 在 URL 中
     current_token = st.session_state.get("token")
     if current_token:
-        query_params = st.experimental_get_query_params()
-        if query_params.get("token", [None])[0] != current_token:
-            st.experimental_set_query_params(token=current_token)
+        if st.query_params.get("token") != current_token:
+            st.query_params["token"] = current_token
             st.rerun()
     
     # 功能导航

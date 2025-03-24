@@ -24,8 +24,7 @@ finally:
 # 页面路由
 def main():
     # 获取当前页面
-    query_params = st.experimental_get_query_params()
-    page = query_params.get("page", [""])[0]
+    page = st.query_params.get("page", "")
 
     # 检查认证状态
     is_authenticated = check_auth()

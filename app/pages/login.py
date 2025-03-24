@@ -15,7 +15,7 @@ def logout():
         if key in st.session_state:
             del st.session_state[key]
     # 清除查询参数
-    st.experimental_set_query_params()
+    st.query_params.clear()
     st.rerun()
 
 def login_page():
@@ -23,7 +23,7 @@ def login_page():
     
     # 如果已经登录，重定向到主页
     if "user" in st.session_state:
-        st.experimental_set_query_params(token=st.session_state.token)  # 保持 token 在 URL 中
+        st.query_params["token"] = st.session_state.token  # 保持 token 在 URL 中
         st.rerun()
         return
 
@@ -71,7 +71,7 @@ def login_page():
 
                 st.success("登录成功！")
                 # 重定向到主页，并保持 token 在 URL 中
-                st.experimental_set_query_params(token=token)
+                st.query_params["token"] = token
                 st.rerun()
             finally:
                 db.close()

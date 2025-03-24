@@ -8,7 +8,7 @@ def register_page():
     # 如果已经登录，重定向到主页
     if "user" in st.session_state:
         st.warning("您已登录，请先退出")
-        st.experimental_set_query_params()
+        st.query_params.clear()
         st.rerun()
         return
 

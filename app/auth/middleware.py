@@ -11,8 +11,7 @@ def restore_session():
         return True
 
     # 尝试从查询参数获取 token
-    query_params = st.experimental_get_query_params()
-    token = query_params.get("token", [None])[0]
+    token = st.query_params.get("token")
     if not token:
         return False
 
@@ -38,7 +37,7 @@ def restore_session():
             db.close()
     
     # 清除无效的 token
-    st.experimental_set_query_params()
+    st.query_params.clear()
     return False
 
 def check_auth():
@@ -59,7 +58,7 @@ def require_auth(func):
     def wrapper(*args, **kwargs):
         if not check_auth():
             st.error("请先登录")
-            st.experimental_set_query_params()  # 清除查询参数，返回登录页
+            st.query_params.clear()  # 清除查询参数，返回登录页
             st.rerun()
             return
         return func(*args, **kwargs)
