@@ -25,7 +25,7 @@ st.write(
     """
 )
 
-stocks = pd.read_csv("data/stock_list.csv")
+stocks = pd.read_csv("data/stock_list.csv", dtype={'ts_code': str, 'symbol': str})
 
 # 定义列名映射
 COLUMN_NAMES = {
@@ -55,6 +55,8 @@ COLUMN_NAMES = {
 def get_stock_data(ts_code, start_date, end_date):
     """获取股票数据并计算技术指标"""
     try:
+        if not ts_code.endswith('.SZ') and not ts_code.endswith('.SH'):
+            ts_code = stocks[stocks['symbol'] == ts_code].iloc[0]['ts_code']
         # 获取日线数据
         df = pro.daily(ts_code=ts_code, start_date=start_date, end_date=end_date)
         
