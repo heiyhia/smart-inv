@@ -48,8 +48,41 @@ COLUMN_NAMES = {
     'ma120': 'M120',
     'vol': '成交量',
     'vol_ratio': '量比',
-    'turnover_rate': '换手率'
+    'turnover_rate': '换手率',
+    'macd': 'MACD',
+    'macd_signal': 'MACD信号线',
+    'macd_hist': 'MACD柱状图'
 }
+
+def calculate_macd(df, fast=12, slow=26, signal=9):
+    """计算MACD指标
+    
+    Args:
+        df: DataFrame, 包含收盘价数据的DataFrame
+        fast: int, 快线周期，默认12
+        slow: int, 慢线周期，默认26
+        signal: int, 信号线周期，默认9
+        
+    Returns:
+        DataFrame: 添加了MACD指标的DataFrame
+    """
+    # 计算快线和慢线的EMA
+    exp1 = df['close'].ewm(span=fast, adjust=False).mean()
+    exp2 = df['close'].ewm(span=slow, adjust=False).mean()
+    macd = exp1 - exp2
+    
+    # 计算信号线
+    signal_line = macd.ewm(span=signal, adjust=False).mean()
+    
+    # 计算MACD柱状图
+    hist = macd - signal_line
+    
+    # 添加到DataFrame
+    df['macd'] = macd.round(2)
+    df['macd_signal'] = signal_line.round(2)
+    df['macd_hist'] = hist.round(2)
+    
+    return df
 
 @st.cache_data
 def get_stock_data(ts_code, start_date, end_date):
@@ -87,6 +120,9 @@ def get_stock_data(ts_code, start_date, end_date):
         # 涨跌幅保留2位小数
         df['pct_chg'] = df['pct_chg'].round(2)
         
+        # 计算MACD指标
+        df = calculate_macd(df)
+        
         # 添加股票名称
         df['stock_name'] = stock_name
 
@@ -113,7 +149,7 @@ with st.sidebar:
     with col1:
         start_date = st.date_input(
             "开始日期",
-            value=datetime.now() - timedelta(days=30)
+            value=datetime.now() - timedelta(days=90)  # 增加默认天数以确保有足够数据计算MACD
         )
     with col2:
         end_date = st.date_input(
@@ -124,14 +160,20 @@ with st.sidebar:
     # 选择显示的列
     st.header("显示设置")
     all_columns = list(COLUMN_NAMES.values())
-    default_columns = ['股票代码', '股票名称', '日期', '最高价', '最低价', '开盘价', '收盘价', 
-                      'T涨幅差', '涨跌幅%', 'M3', 'M5', 'M10', 'M20', 'M30', 'M50', 'M120',
+    default_columns = ['股票代码', '股票名称', '日期', '开盘价', '收盘价', '最高价', '最低价', 
+                      'T涨幅差', '涨跌幅%', 'MACD', 'MACD信号线', 'MACD柱状图', 'M5', 'M10', 'M20',
                       '最高最低差价']
     selected_columns = st.multiselect(
         "选择要显示的列",
         options=all_columns,
         default=default_columns
     )
+    
+    # MACD参数设置
+    st.header("MACD参数设置")
+    macd_fast = st.slider("快线周期", min_value=5, max_value=30, value=12)
+    macd_slow = st.slider("慢线周期", min_value=10, max_value=50, value=26)
+    macd_signal = st.slider("信号线周期", min_value=3, max_value=20, value=9)
 
 # 查询按钮
 if st.sidebar.button("查询"):
@@ -147,6 +189,10 @@ if st.sidebar.button("查询"):
             df = get_stock_data(stock_code, start_date_str, end_date_str)
             
         if df is not None and not df.empty:
+            # 使用自定义MACD参数重新计算MACD (如果参数与默认值不同)
+            if macd_fast != 12 or macd_slow != 26 or macd_signal != 9:
+                df = calculate_macd(df, fast=macd_fast, slow=macd_slow, signal=macd_signal)
+                
             # 重命名列
             df_display = df.copy()
             for old_name, new_name in COLUMN_NAMES.items():
@@ -163,14 +209,68 @@ if st.sidebar.button("查询"):
                 hide_index=True
             )
             
+            # 显示MACD图表
+            st.subheader("MACD图表")
+            
+            # 准备图表数据 (使用原始日期顺序)
+            chart_data = df.sort_values('trade_date', ascending=True).copy()
+            chart_data['trade_date'] = pd.to_datetime(chart_data['trade_date'])
+            
+            # 创建图表
+            fig_macd = {
+                "data": [
+                    {
+                        "type": "scatter",
+                        "mode": "lines",
+                        "name": "MACD",
+                        "x": chart_data['trade_date'],
+                        "y": chart_data['macd'],
+                        "line": {"color": "blue"}
+                    },
+                    {
+                        "type": "scatter",
+                        "mode": "lines",
+                        "name": "信号线",
+                        "x": chart_data['trade_date'],
+                        "y": chart_data['macd_signal'],
+                        "line": {"color": "red"}
+                    },
+                    {
+                        "type": "bar",
+                        "name": "柱状图",
+                        "x": chart_data['trade_date'],
+                        "y": chart_data['macd_hist'],
+                        "marker": {
+                            "color": chart_data['macd_hist'].apply(
+                                lambda x: 'red' if x > 0 else 'green'
+                            )
+                        }
+                    }
+                ],
+                "layout": {
+                    "title": f"{stock_code} MACD指标 ({macd_fast},{macd_slow},{macd_signal})",
+                    "xaxis": {"title": "日期"},
+                    "yaxis": {"title": "值"},
+                    "legend": {"x": 0, "y": 1.1, "orientation": "h"},
+                    "height": 400,
+                }
+            }
+            
+            st.plotly_chart(fig_macd, use_container_width=True)
+            
             # 显示统计信息
             st.subheader("数据统计")
-            col1, col2, col3 = st.columns(3)
+            col1, col2, col3, col4 = st.columns(4)
             with col1:
                 st.metric("数据天数", len(df))
             with col2:
                 st.metric("期间最高价", df['high'].max())
             with col3:
                 st.metric("期间最低价", df['low'].min())
+            with col4:
+                # 显示最新的MACD柱状图值，正值表示看涨，负值表示看跌
+                latest_hist = df.iloc[0]['macd_hist']
+                st.metric("最新MACD柱状图", f"{latest_hist:.2f}", 
+                         delta="看涨信号" if latest_hist > 0 else "看跌信号")
         else:
             st.error("未找到数据，请检查股票代码和日期范围是否正确")
