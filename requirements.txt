@@ -4,3 +4,4 @@ tushare
 numpy
 altair
 plotly
+easyquotation

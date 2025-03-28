@@ -4,6 +4,8 @@ import pandas as pd
 import numpy as np
 import tushare as ts
 from datetime import datetime, timedelta
+import easyquotation as eq
+import pytz
 
 # 设置页面配置
 st.set_page_config(
@@ -49,8 +51,6 @@ COLUMN_NAMES = {
     'vol': '成交量',
     'vol_ratio': '量比',
     'turnover_rate': '换手率',
-    'macd': 'MACD',
-    'macd_signal': 'MACD信号线',
     'macd_hist': 'MACD柱状图'
 }
 
@@ -83,6 +83,47 @@ def calculate_macd(df, fast=12, slow=26, signal=9):
     df['macd_hist'] = hist.round(2)
     
     return df
+
+def get_today_quote(ts_code):
+    """获取当日行情数据
+    
+    Args:
+        ts_code: str, 股票代码(格式: 000001.SZ)
+        
+    Returns:
+        dict: 当日行情数据，如果市场未收盘则返回 None
+    """
+    # 转换 ts_code 为 easyquotation 格式 (000001.SZ -> 000001)
+    code = ts_code.split('.')[0]
+    
+    # 获取当前时间(使用中国时区)
+    tz = pytz.timezone('Asia/Shanghai')
+    now = datetime.now(tz)
+    
+    # 如果是交易日且在15:00后
+    if now.weekday() < 5 and now.hour >= 15:
+        try:
+            qq = eq.use('tencent')
+            quote = qq.real(code)[code]
+            
+            # 转换为与 tushare 相同的格式
+            today_data = {
+                'ts_code': ts_code,
+                'trade_date': now.strftime('%Y%m%d'),
+                'open': quote['open'],
+                'high': quote['high'],
+                'low': quote['low'],
+                'close': quote['now'],  # 现价即收盘价
+                'vol': quote['volume'] / 100,  # 转换为手
+                'amount': quote['成交额(万)'] * 10000,  # 转换为元
+                'pct_chg': quote['涨跌(%)'],
+                'turnover_rate': quote['turnover']
+            }
+            return today_data
+        except Exception as e:
+            st.warning(f"获取当日行情失败: {str(e)}")
+            return None
+    return None
 
 @st.cache_data
 def get_stock_data(ts_code, start_date, end_date):
@@ -161,7 +202,7 @@ with st.sidebar:
     st.header("显示设置")
     all_columns = list(COLUMN_NAMES.values())
     default_columns = ['股票代码', '股票名称', '日期', '开盘价', '收盘价', '最高价', '最低价', 
-                      'T涨幅差', '涨跌幅%', 'MACD', 'MACD信号线', 'MACD柱状图', 'M5', 'M10', 'M20',
+                      'T涨幅差', '涨跌幅%', 'MACD柱状图', 'M5', 'M10', 'M20',
                       '最高最低差价']
     selected_columns = st.multiselect(
         "选择要显示的列",
